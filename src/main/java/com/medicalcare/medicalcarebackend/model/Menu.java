@@ -32,10 +32,15 @@ public class Menu {
     private String url;
 
     //relación MANY TO MANY creandop taba intermedia, esto no se recomienda ya que para escalabilidad de añadir nuevos atributos se debe modificar aqui.
-    @ManyToOne (fetch = FetchType.EAGER)
+    @ManyToMany (fetch = FetchType.EAGER)
     @JoinTable(name= "menu_role",
-        joinColumns=@JoinColumn(name="id_menu",referencedColumnName = "idMenu"),
-        inverseJoinColumns = @JoinColumn(name= "id_role", referencedColumnName = "idRole")
+        joinColumns=@JoinColumn(name="id_menu",referencedColumnName = "idMenu", foreignKey = @ForeignKey(name = "MENUROLE_ID_MENU_FK")),
+        inverseJoinColumns = @JoinColumn(name= "id_role", referencedColumnName = "idRole", foreignKey = @ForeignKey(name = "MENUROLE_ID_ROLE_FK"))
     )
     private List<Role> roles;
+
+    //FORMA 2 DE RELACION ENTRE TABLAS MANY TO MANY SIN  crear manualmente la TABLA INTERMEDIA sino que la crea springboot
+    /*Eager permite traer todos los datos relacionados cuando se consulte uusario, es decir que cuando se traiga usuario, tambien se traeran todos sus roles.
+     * no se recomienda si son muchos registros ya que sobrecarga la app
+     * */
 }

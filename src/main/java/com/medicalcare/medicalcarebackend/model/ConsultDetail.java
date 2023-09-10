@@ -34,8 +34,6 @@ public class ConsultDetail {
     @JoinColumn(name="id_consult",nullable = false, foreignKey= @ForeignKey(name = "CONSULTDETAIL_ID_CONSULT_FK"))
     /*el nombre de la llave foranea no es obligatorio que sea igual al de la tabla primaria PERO ES BUENA PRACTICA
     //ES OBLIGATORIO QUE SEA DEL MISMO TIPO*/
-
-    @Column(nullable = false, length = 70)
     private Consult consult;
 
     @Column(nullable = false, length = 70)

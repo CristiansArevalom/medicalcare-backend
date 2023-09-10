@@ -24,7 +24,7 @@ public class Role {
     @Column(nullable = false,length = 50)
     private String name;
 
-    @Column(nullable = false,length = 1000)
-    private String descripcion;
+    @Column(nullable = false,length = 100)
+    private String description;
 
 }

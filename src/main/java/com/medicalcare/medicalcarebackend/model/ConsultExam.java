@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /*RELACION HACIA OTRA TABLA USANDO LLAVE PRIMARIA COMPUESTA , S
-Se recomienda que la definición de la lalve primaria este separada en otra tabla
+Se recomienda que la definición de la lllve primaria este separada en otra tabla
  */
 
 @Data
