@@ -1,0 +1,124 @@
+package com.medicalcare.medicalcarebackend.controller;
+
+
+import com.medicalcare.medicalcarebackend.dto.PatientDTO;
+import com.medicalcare.medicalcarebackend.model.Patient;
+import com.medicalcare.medicalcarebackend.service.IPatientService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
+import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+@RestController // @Controller + @Responsebody
+@RequestMapping("/patients") // emdpoints | sustantivos prural
+@RequiredArgsConstructor
+public class PatientController {
+    //@Autowired
+    private final IPatientService service;
+
+    @Qualifier ("defaultMapper") //esta anotación permite decir a cual Bean del MapperConfig se refiere para que la libreria Mapper pueda convertir de DTO a entity y viceversa
+    /*Para que lo reconozca el proyecto, se debe agregar al proyecto el archivo lomok.config conel detalle de la configuración*/
+    private final ModelMapper mapper;
+
+    //Como se usa el RequiredArgsConstructor ya no es encesario hacer la inyecion especificando en ester constructor
+    /*public PatientController(IPatientService service) {
+        this.service = service;
+    }*/
+
+
+
+    @GetMapping
+    public ResponseEntity<List<PatientDTO>> findAll(){
+        List<PatientDTO> lst = service.findAll().stream().map(this::convertToDto).toList();
+        //List<PatientRecord> lst = service.findAll().stream().map(e -> new PatientRecord(e.getIdPatient(), e.getFirstName(), e.getLastName(), e.getDni(), e.getAddress(), e.getPhone(), e.getEmail())
+            /*{
+            PatientDTO dto = new PatientDTO();
+            dto.setIdPatient(e.getIdPatient());
+            dto.setPrimaryName(e.getFirstName());
+            dto.setSurname(e.getLastName());
+            dto.setDni(e.getDni());
+            dto.setEmail(e.getEmail());
+            dto.setAddress(e.getAddress());
+            return dto;
+        }*/
+        //).toList();
+        return new ResponseEntity<>(lst, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PatientDTO> findById(@PathVariable("id") Integer id){
+        Patient obj = service.findById(id);
+            return new ResponseEntity<>(convertToDto(obj),HttpStatus.OK);
+    }
+
+    /*@PostMapping
+    public ResponseEntity<Patient> save(@RequestBody Patient patient){
+        Patient obj = service.save(patient);
+        return new ResponseEntity<>(obj, HttpStatus.CREATED);
+    }*/
+
+    @PostMapping
+    //La anotación @Valid sirve para que los constraint indicados en el DTO tengan efecto
+    //se crea este metodo para cumplir con el madurez de richardson n2 que retorna la url
+
+    public ResponseEntity<PatientDTO> save(@Valid @RequestBody PatientDTO dto){
+        Patient obj = service.save(convertToEntity(dto));
+        //localhost:8080/patients/3
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getIdPatient()).toUri();
+        return ResponseEntity.created(location).build(); //.body(obj);
+    }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PatientDTO> update(@Valid @PathVariable("id") Integer id, @RequestBody PatientDTO dto){
+        //si no encuentra el ID, hace un insert
+        Patient obj = service.update(convertToEntity(dto), id);
+        return new ResponseEntity<>(convertToDto(obj), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable("id") Integer id){
+        service.delete(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /*para llegar al nivel 3 de madurez de richardson se crea esta clase e inprimir su propia url y agregar un bloque informativo SE TIENE ESTE METODO*/
+    @GetMapping("/hateoas/{id}")
+    public EntityModel<PatientDTO> findByIdHateoas(@PathVariable("id") Integer id){
+        EntityModel<PatientDTO> resource = EntityModel.of(convertToDto(service.findById(id)));
+        //localhost:8080/patients/1
+
+        /*para llegar al nivel 3 de madurez de richardson se crea esta clase e inprimir su propia url y agregar un bloque informativo*/
+
+        /***
+         * la url esta en this.getClass.findById, aca no se ejecuta el emtodo, solo trae el path  para traer la URL
+         * esto se almacena en un WebMvcLinkBuilder
+         */
+        WebMvcLinkBuilder link1 = linkTo(methodOn(this.getClass()).findById(id));
+        WebMvcLinkBuilder link2 = linkTo(methodOn(this.getClass()).findById(id));
+
+        resource.add(link1.withRel("patient-info1"));
+        resource.add(link1.withRel("patient-info2"));
+        return resource;
+    }
+
+    private PatientDTO convertToDto(Patient obj){
+        return mapper.map(obj, PatientDTO.class);
+    }
+
+    private Patient convertToEntity(PatientDTO dto){
+        return mapper.map(dto, Patient.class);
+    }
+}

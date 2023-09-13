@@ -15,7 +15,7 @@ import lombok.*;
 @Entity // indica que es una entidad de mapeo jpa
 //@Table(name = "ss") Por si se quiere dar un nombre personalizado a la tabla
 
-public class Speciality {
+public class Specialty {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
